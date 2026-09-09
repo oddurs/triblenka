@@ -1,0 +1,39 @@
+name: Proposal
+description: Suggest something the project should do, or argue that it should not do something.
+labels: [proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [`ROADMAP.md`](https://github.com/oddurs/triblenka/blob/main/ROADMAP.md) first — it may
+        already be planned. Disagreement with a decision in `DESIGN.md` is very welcome here; say
+        which decision and why it is wrong.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard or impossible today. Describe the situation, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+    validations:
+      required: true
+  - type: textarea
+    id: cost
+    attributes:
+      label: What it costs
+      description: |
+        Every feature costs something — payload, build time, API surface, a new concept to learn.
+        What does this one cost, and why is it worth it?
+    validations:
+      required: true
+  - type: checkboxes
+    id: thesis
+    attributes:
+      label: Compatibility with the design
+      options:
+        - label: This does not require compiling anything in `content/**` (see DESIGN.md, Decision B)
+        - label: This does not add JavaScript to a page that has no islands

@@ -1,0 +1,19 @@
+[package]
+name = "tri-cli"
+description = "The `tri` command line interface for Triblenka"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "tri"
+path = "src/main.rs"
+
+[dependencies]
+triblenka = { path = "../triblenka", version = "0.0.0" }
+
+[lints]
+workspace = true

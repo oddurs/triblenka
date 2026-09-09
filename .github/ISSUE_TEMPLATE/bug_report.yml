@@ -1,0 +1,41 @@
+name: Bug report
+description: Something behaves differently from how it is documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The project is at the design stage, so most of what is documented is not implemented yet.
+        If something in `docs/` describes behaviour that does not exist, that is expected — please
+        open a documentation issue instead of a bug.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happens
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+      description: Link the documentation or design section that says so, if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: The smallest project or command sequence that shows the problem.
+      placeholder: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Output of `rustc --version`, your OS, and the commit you are on.
+      render: text
+    validations:
+      required: true

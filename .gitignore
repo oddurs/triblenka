@@ -1,0 +1,19 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Triblenka build artifacts
+/dist/
+/.tri/
+
+# Worktrees created by scripts/agent live beside the repo, not inside it,
+# but guard against a stray one.
+/.worktrees/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,36 @@
+#!/bin/sh
+# Enforce Conventional Commits, and keep assistant attribution out of git objects.
+set -eu
+
+msg_file=$1
+subject=$(sed -n '1p' "$msg_file")
+
+case "$subject" in
+"#"*) exit 0 ;;
+esac
+
+RE='^(feat|fix|chore|docs|perf|refactor|test|build|ci|revert|style)(\([a-z0-9._/-]+\))?!?: .+'
+if ! printf '%s' "$subject" | grep -Eq "$RE"; then
+	echo "commit-msg: not a Conventional Commit" >&2
+	echo "  got:      $subject" >&2
+	echo "  expected: type(scope): subject      e.g. fix(compiler): keep spans through codegen" >&2
+	echo "  types:    feat fix chore docs perf refactor test build ci revert style" >&2
+	exit 1
+fi
+
+if [ "${#subject}" -gt 72 ]; then
+	echo "commit-msg: subject is ${#subject} characters, the limit is 72" >&2
+	exit 1
+fi
+
+case "$subject" in
+*.) echo "commit-msg: subject must not end with a period" >&2; exit 1 ;;
+esac
+
+# The work is published under the owner's name. No tool gets to sign it.
+ATTRIBUTION='co-authored-by:[[:space:]]*(claude|anthropic|copilot)|generated (with|by) (claude|anthropic|ai)|noreply@anthropic\.com|claude\.ai/code|🤖'
+if grep -Eiq "$ATTRIBUTION" "$msg_file"; then
+	echo "commit-msg: assistant attribution is not permitted in commit messages" >&2
+	grep -Ein "$ATTRIBUTION" "$msg_file" >&2
+	exit 1
+fi

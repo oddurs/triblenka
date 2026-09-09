@@ -1,0 +1,27 @@
+#!/bin/sh
+# Run once after cloning. Idempotent.
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "==> wiring git hooks"
+git config core.hooksPath .githooks
+chmod +x .githooks/* scripts/* 2>/dev/null || true
+
+echo "==> checking the toolchain"
+rustup show active-toolchain >/dev/null 2>&1 || {
+	echo "setup: rustup is required; see https://rustup.rs" >&2
+	exit 1
+}
+
+echo "==> running checks"
+scripts/task check
+
+cat <<'DONE'
+
+ready.
+
+  scripts/agent doctor          verify the environment
+  scripts/agent start <branch>  begin a unit of work
+  scripts/task check            what CI runs
+DONE

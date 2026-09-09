@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.rs      text diff=rust
+*.md      text diff=markdown
+*.tri     text linguist-language=HTML
+scripts/* text eol=lf
+.githooks/* text eol=lf
+
+LICENSE-APACHE linguist-vendored
+LICENSE-MIT    linguist-vendored
+ROADMAP.md     linguist-generated

@@ -1,0 +1,14 @@
+---
+id: 80
+title: Optional Node/Deno sidecar for JS SSR
+type: feature
+status: backlog
+milestone: m5
+created: 2026-09-09
+updated: 2026-09-09
+priority: p3
+effort: l
+area: islands
+---
+
+Off by default, absent from the shipped binary, clearly marked the slow path. Embedding V8 or QuickJS in the default build was considered and rejected: it doubles binary size, breaks wasm targets, and re-imports the ecosystem we left.

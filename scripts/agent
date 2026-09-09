@@ -1,0 +1,169 @@
+#!/bin/sh
+# One unit of work -> one worktree -> one branch -> one PR.
+#
+# Every subcommand is idempotent, says what it is about to do, and fails with a
+# non-zero status and an actionable message.
+set -eu
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [ -z "$ROOT" ]; then
+	echo "agent: not inside a git repository" >&2
+	exit 1
+fi
+REPO=$(basename "$ROOT")
+WORKTREE_ROOT="$ROOT/../.worktrees/$REPO"
+BRANCH_RE='^(feat|fix|chore|docs|perf|refactor|test)/[a-z0-9][a-z0-9._-]*$'
+COMMIT_RE='^(feat|fix|chore|docs|perf|refactor|test|build|ci|revert|style)(\([a-z0-9._/-]+\))?!?: .+'
+
+default_branch() {
+	git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' ||
+		git config --get init.defaultBranch ||
+		echo main
+}
+
+die() {
+	echo "agent: $*" >&2
+	exit 1
+}
+
+usage() {
+	cat <<'USAGE'
+usage: scripts/agent <command>
+
+  doctor              verify the environment
+  start <type>/<slug> create a branch and its worktree
+  check               run scripts/task check
+  commit <message>    validate the message, then commit
+  pr [--draft]        check, push, open a pull request
+  sync                rebase onto the default branch
+  done                after merge: remove the worktree and branches
+  list                worktrees and their pull request state
+USAGE
+}
+
+cmd_doctor() {
+	problems=0
+	report() {
+		echo "  $1 $2"
+		[ "$1" = "x" ] && problems=$((problems + 1))
+		return 0
+	}
+
+	echo "==> doctor"
+	command -v git >/dev/null 2>&1 && report "." "git" || report "x" "git is not installed"
+	command -v gh >/dev/null 2>&1 && report "." "gh" || report "x" "gh is not installed: https://cli.github.com"
+	command -v cargo >/dev/null 2>&1 && report "." "cargo" || report "x" "cargo is not installed: https://rustup.rs"
+
+	if command -v gh >/dev/null 2>&1; then
+		gh auth status >/dev/null 2>&1 && report "." "gh authenticated" ||
+			report "x" "gh is not authenticated: run 'gh auth login'"
+	fi
+
+	hooks=$(git config --get core.hooksPath || true)
+	if [ "$hooks" = ".githooks" ]; then
+		report "." "hooks wired"
+	else
+		report "x" "hooks are not wired: run scripts/setup"
+	fi
+
+	if [ -n "$(git status --porcelain)" ]; then
+		report "x" "working tree is dirty"
+	else
+		report "." "working tree clean"
+	fi
+
+	echo "  . default branch: $(default_branch)"
+	[ "$problems" -eq 0 ] || die "$problems problem(s) above"
+	echo "==> ok"
+}
+
+cmd_start() {
+	branch=${1:-}
+	[ -n "$branch" ] || die "usage: agent start <type>/<slug>"
+	echo "$branch" | grep -Eq "$BRANCH_RE" ||
+		die "branch must match $BRANCH_RE (e.g. feat/template-descriptor)"
+
+	base=$(default_branch)
+	path="$WORKTREE_ROOT/$branch"
+
+	git show-ref --quiet "refs/heads/$branch" && die "branch '$branch' already exists"
+	[ -e "$path" ] && die "worktree path already exists: $path"
+
+	echo "==> fetching origin"
+	git fetch --quiet origin
+	echo "==> creating worktree $path from origin/$base"
+	mkdir -p "$(dirname "$path")"
+	git worktree add -b "$branch" "$path" "origin/$base" >/dev/null
+
+	echo
+	echo "  cd $(cd "$path" && pwd)"
+}
+
+cmd_commit() {
+	[ $# -ge 1 ] || die "usage: agent commit <message>"
+	msg="$*"
+	echo "$msg" | head -1 | grep -Eq "$COMMIT_RE" ||
+		die "message must be a Conventional Commit, e.g. 'fix(compiler): keep spans through codegen'"
+	git commit -m "$msg"
+}
+
+cmd_pr() {
+	draft=""
+	[ "${1:-}" = "--draft" ] && draft="--draft"
+	base=$(default_branch)
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	[ "$branch" != "$base" ] || die "refusing to open a pull request from $base"
+
+	scripts/task check
+	echo "==> pushing $branch"
+	git push -u origin "$branch"
+	echo "==> opening pull request"
+	gh pr create --fill --base "$base" $draft
+	gh pr view --json url --jq .url
+}
+
+cmd_sync() {
+	base=$(default_branch)
+	echo "==> rebasing onto origin/$base"
+	git fetch --quiet origin
+	git rebase "origin/$base"
+}
+
+cmd_done() {
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	base=$(default_branch)
+	[ "$branch" != "$base" ] || die "nothing to finish: on $base"
+
+	state=$(gh pr view "$branch" --json state --jq .state 2>/dev/null || echo NONE)
+	[ "$state" = "MERGED" ] || die "pull request for '$branch' is $state, not MERGED"
+
+	path=$(git rev-parse --show-toplevel)
+	echo "==> removing worktree $path"
+	cd "$ROOT/.." || die "cannot leave the worktree"
+	git -C "$ROOT" worktree remove "$path" --force
+	git -C "$ROOT" branch -D "$branch" >/dev/null
+	git -C "$ROOT" worktree prune
+	git -C "$ROOT" fetch --prune --quiet origin
+	echo "==> done; the primary checkout is at $ROOT"
+}
+
+cmd_list() {
+	git worktree list --porcelain | awk '/^worktree /{p=$2} /^branch /{sub("refs/heads/","",$2); print $2"\t"p}' |
+		while IFS="$(printf '\t')" read -r b p; do
+			state=$(gh pr view "$b" --json state --jq .state 2>/dev/null || echo "-")
+			printf '%-40s %-10s %s\n' "$b" "$state" "$p"
+		done
+}
+
+case "${1:-}" in
+doctor) shift; cmd_doctor "$@" ;;
+start) shift; cmd_start "$@" ;;
+check) shift; scripts/task check ;;
+commit) shift; cmd_commit "$@" ;;
+pr) shift; cmd_pr "$@" ;;
+sync) shift; cmd_sync "$@" ;;
+done) shift; cmd_done "$@" ;;
+list) shift; cmd_list "$@" ;;
+-h | --help | help | "") usage ;;
+*) echo "agent: unknown command '$1'" >&2; usage >&2; exit 2 ;;
+esac

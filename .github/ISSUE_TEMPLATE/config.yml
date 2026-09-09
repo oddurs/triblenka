@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/oddurs/triblenka/security/advisories/new
+    about: Report privately through GitHub Security Advisories, not as a public issue.
+  - name: Roadmap
+    url: https://github.com/oddurs/triblenka/blob/main/ROADMAP.md
+    about: What is planned and in what order, generated from the cairn backlog.
+  - name: Architecture
+    url: https://github.com/oddurs/triblenka/blob/main/DESIGN.md
+    about: Why the project is shaped the way it is, including the decisions that were reversed.
