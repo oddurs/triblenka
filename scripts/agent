@@ -5,11 +5,14 @@
 # non-zero status and an actionable message.
 set -eu
 
-ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
-if [ -z "$ROOT" ]; then
+HERE=$(git rev-parse --show-toplevel 2>/dev/null || true)
+if [ -z "$HERE" ]; then
 	echo "agent: not inside a git repository" >&2
 	exit 1
 fi
+# The primary checkout, even when this runs inside a linked worktree: the common
+# git dir is shared by every worktree, so its parent is always the main clone.
+ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
 REPO=$(basename "$ROOT")
 WORKTREE_ROOT="$ROOT/../.worktrees/$REPO"
 BRANCH_RE='^(feat|fix|chore|docs|perf|refactor|test)/[a-z0-9][a-z0-9._-]*$'
@@ -137,13 +140,15 @@ cmd_done() {
 	state=$(gh pr view "$branch" --json state --jq .state 2>/dev/null || echo NONE)
 	[ "$state" = "MERGED" ] || die "pull request for '$branch' is $state, not MERGED"
 
-	path=$(git rev-parse --show-toplevel)
+	path=$HERE
 	echo "==> removing worktree $path"
-	cd "$ROOT/.." || die "cannot leave the worktree"
-	git -C "$ROOT" worktree remove "$path" --force
-	git -C "$ROOT" branch -D "$branch" >/dev/null
-	git -C "$ROOT" worktree prune
-	git -C "$ROOT" fetch --prune --quiet origin
+	# Leave the directory before it is removed, or every command after this one
+	# runs with no working directory.
+	cd "$ROOT" || die "cannot reach the primary checkout at $ROOT"
+	git worktree remove "$path" --force
+	git branch -D "$branch" >/dev/null
+	git worktree prune
+	git fetch --prune --quiet origin
 	echo "==> done; the primary checkout is at $ROOT"
 }
 
