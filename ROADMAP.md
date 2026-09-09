@@ -4,9 +4,13 @@
 
 ## m0 — M0 — Spike: prove the two boundaries
 
-`#·········` 10% · 1 of 10 done · due 2026-09-30
+`#·········` 9% · 1 of 11 done · due 2026-09-30
 
 Two kill criteria, either one stops the project.
+
+### backlog
+
+- [ ] `0103` Field-level incrementality <sup>feature · p1</sup>
 
 ### planned
 
@@ -26,7 +30,7 @@ Two kill criteria, either one stops the project.
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 44 done · due 2027-02-05
+`··········` 0% · 0 of 49 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -76,10 +80,15 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0096` Record asset field paths in stored entries <sup>feature · p1</sup>
 - [ ] `0097` A cache that cannot be read is a warning, not an error <sup>feature · p1</sup>
 - [ ] `0101` Annotate elements with their source file in dev <sup>feature · p2</sup>
+- [ ] `0104` tri impact <sup>feature · p0</sup>
+- [ ] `0105` tri why <sup>feature · p1</sup>
+- [ ] `0107` Store schema versioning <sup>feature · p0</sup>
+- [ ] `0109` tri build --verify-reproducible <sup>feature · p1</sup>
+- [ ] `0111` Writer-grade error messages <sup>feature · p0</sup>
 
 ## m2 — M2 — Islands
 
-`··········` 0% · 0 of 17 done · due 2027-04-30
+`··········` 0% · 0 of 19 done · due 2027-04-30
 
 Partial hydration: registry, TypeScript renderer (default), Leptos renderer, wasm split, client directives, size budgets. A bet placed only if M1 finds users.
 
@@ -102,10 +111,12 @@ Partial hydration: registry, TypeScript renderer (default), Leptos renderer, was
 - [ ] `0092` Hydration error event and graceful degradation <sup>feature · p1</sup>
 - [ ] `0093` Re-hydrate when props change <sup>feature · p2</sup>
 - [ ] `0094` Build-time error for non-serializable island props <sup>feature · p1</sup>
+- [ ] `0108` Content migrations <sup>feature · p1</sup>
+- [ ] `0110` Enforce the zero-JavaScript contract <sup>feature · p1</sup>
 
 ## m3 — M3 — Server
 
-`··········` 0% · 0 of 10 done · due 2027-06-30
+`··········` 0% · 0 of 11 done · due 2027-06-30
 
 output = server | hybrid, tower middleware, endpoints, server islands, standalone and WASI adapters.
 
@@ -121,6 +132,7 @@ output = server | hybrid, tower middleware, endpoints, server islands, standalon
 - [ ] `0098` Out-of-band signing key and key rotation <sup>feature · p0</sup>
 - [ ] `0099` Fall back to POST when a server island URL is too long <sup>feature · p2</sup>
 - [ ] `0100` waitUntil and prerendered error pages in the adapter contract <sup>feature · p1</sup>
+- [ ] `0106` tri build --changed and the deploy plan <sup>feature · p1</sup>
 
 ## m4 — M4 — Platform
 
