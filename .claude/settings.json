@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo tree:*)",
+      "Bash(scripts/task:*)",
+      "Bash(scripts/agent doctor)",
+      "Bash(scripts/agent list)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree list:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(cairn list:*)",
+      "Bash(cairn show:*)",
+      "Bash(cairn next:*)",
+      "Bash(cairn board:*)",
+      "Bash(cairn roadmap:*)",
+      "Bash(cairn search:*)",
+      "Bash(cairn check:*)"
+    ],
+    "deny": [
+      "Edit(ROADMAP.md)",
+      "Write(ROADMAP.md)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git push --no-verify:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/no-commit-on-default-branch.sh",
+            "if": "Bash(git commit:*)",
+            "timeout": 10,
+            "statusMessage": "Checking the current branch"
+          }
+        ]
+      }
+    ]
+  }
+}

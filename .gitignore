@@ -10,6 +10,9 @@
 # but guard against a stray one.
 /.worktrees/
 
+# Personal Claude Code overrides; .claude/settings.json and .claude/agents/ are committed
+.claude/settings.local.json
+
 # OS and editor
 .DS_Store
 Thumbs.db

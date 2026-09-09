@@ -181,6 +181,38 @@ the PR, not a footnote.
 - Silently narrow scope. If you cut something, file the cut piece as a cairn item so it is recorded
   rather than lost.
 
+## Agents
+
+Six subagents live in `.claude/agents/`. Delegate to them rather than re-deriving what they already
+know — each one carries this project's standards for its slice of the work.
+
+| Agent | Use it when |
+|---|---|
+| `design-critic` | Someone proposes an architectural change, including you. It knows Appendix A and will tell you which motion you are re-opening |
+| `astro-parity` | You are about to implement a subsystem Astro also has. It reads their source, not their docs, and reports adopt / adapt / diverge |
+| `determinism-auditor` | You added code that emits bytes or orders a collection. It hunts the seven rules in `docs/concepts/determinism.md` |
+| `error-smith` | You are adding an error path, or a message reads like it was written for a compiler engineer |
+| `docs-keeper` | You implemented something the docs describe, or changed an API. It owns the design-stage banners |
+| `backlog-groomer` | A session discovered or dropped work. It files it in cairn with the reasoning |
+
+There is deliberately no agent for island payloads, the compiler, or the build graph yet: there is
+no code for them to act on, and this file forbids dead config. Add them when M0 produces something
+to measure.
+
+## Settings and hooks
+
+`.claude/settings.json` is committed, so these apply to everyone working in the repository.
+
+- **Denied outright**: writes to `ROADMAP.md` (generated — change `cairn/items/` and run
+  `cairn render`), and `git commit --no-verify` / `git push --no-verify` (hard rule 4).
+- **One hook**: `PreToolUse` on `git commit*` refuses to commit while the default branch is checked
+  out, and tells you to run `scripts/agent start` instead. The repository's own hooks refuse the
+  *push*; this closes the gap where a commit lands on `main` locally and has to be moved.
+- **Allowlisted**: read-only `cargo`, `git`, `gh`, `cairn` and `scripts/task` invocations, so the
+  ordinary loop does not generate permission prompts.
+
+Personal overrides go in `.claude/settings.local.json`, which is gitignored.
+
 ## When you are unsure
 
 Ask, or write the argument down in the item and proceed under a stated assumption. The one thing
