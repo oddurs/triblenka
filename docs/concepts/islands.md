@@ -2,6 +2,11 @@
 
 > Design-stage docs.
 
+> **Islands are rung 3 of four.** Read [Interactivity](interactivity.md) first — most of what people
+> reach for an island to do is better served by a server frame (rung 1) or a resumable handler
+> (rung 2), at a fraction of the bytes. This page is about the case where a component genuinely needs
+> continuous local state: a canvas, an editor, a map, a data grid.
+
 A Triblenka page is static HTML by default. An **island** is a component that is allowed to run in
 the browser: it renders on the server like everything else, then hydrates on a trigger you choose,
 loading only its own code.

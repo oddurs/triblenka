@@ -53,11 +53,13 @@ That page ships **zero bytes of JavaScript** until the newsletter form scrolls i
 | [Incrementality](docs/concepts/incrementality.md) | Field-level rebuilds, `tri impact`, `tri why` |
 | [Determinism](docs/concepts/determinism.md) | Byte-reproducible builds |
 | [Publishing](docs/guides/publishing.md) | Content deploys, migrations, rollback |
+| [Contracts](docs/concepts/contracts.md) | Zero-JS, no-JS-fallback, a11y and budgets as compile errors |
 | [Errors](docs/concepts/errors.md) | The error-quality contract |
 | [Components (`.tri`)](docs/guides/components.md) | The template language |
 | [Routing](docs/guides/routing.md) | Pages, dynamic routes, endpoints |
 | [Content collections](docs/guides/content-collections.md) | Typed content and loaders |
-| [Islands](docs/concepts/islands.md) | Partial hydration, client directives |
+| [Interactivity](docs/concepts/interactivity.md) | The four-rung ladder: platform, frame, resumable, island |
+| [Islands](docs/concepts/islands.md) | Rung 3: partial hydration, client directives |
 | [Styling](docs/guides/styling.md) | Scoped CSS, global styles |
 | [Images & assets](docs/guides/assets.md) | Optimization, fonts, static files |
 | [Deployment](docs/guides/deployment.md) | Adapters and output modes |

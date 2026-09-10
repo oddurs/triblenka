@@ -16,3 +16,19 @@ anything may change.
 - The roadmap, tracked as [cairn](https://github.com/oddurs/cairn) items and rendered to
   `ROADMAP.md`.
 - A cargo workspace, the `tri` binary, and the branch/worktree/pull-request workflow in `scripts/`.
+- The interactivity ladder: four rungs — platform, server frame, resumable handler, island — with
+  the rung inferred by the compiler. Documented in `docs/concepts/interactivity.md` and `DESIGN.md`
+  §9; the wider survey it came from is `DESIGN.md` Appendix C.
+- Contracts: `deny(javascript)`, `require(no_js_fallback)`, `deny(external_requests)` and the
+  accessibility checks, enforced as build errors rather than lints
+  (`docs/concepts/contracts.md`).
+
+### Changed
+
+- M2 is no longer "Islands". It is the ladder, sequenced frames-first; islands become rung 3 and
+  land last. Building islands first would have produced an Astro port.
+
+### Removed
+
+- The client-side router, the Node/Deno sidecar for JavaScript SSR, and the second Rust island
+  renderer. Each is recorded as a dropped cairn item with the reasoning rather than deleted.
