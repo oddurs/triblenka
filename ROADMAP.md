@@ -30,7 +30,7 @@ Two kill criteria, either one stops the project.
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 49 done · due 2027-02-05
+`··········` 0% · 0 of 52 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -85,10 +85,13 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0107` Store schema versioning <sup>feature · p0</sup>
 - [ ] `0109` tri build --verify-reproducible <sup>feature · p1</sup>
 - [ ] `0111` Writer-grade error messages <sup>feature · p0</sup>
+- [ ] `0119` Accessibility contracts <sup>feature · p2</sup>
+- [ ] `0120` Platform-first navigation <sup>feature · p2</sup>
+- [ ] `0121` Machine-readable diagnostics and CLI output <sup>feature · p1</sup>
 
-## m2 — M2 — Islands
+## m2 — M2 — The interactivity ladder
 
-`··········` 0% · 0 of 19 done · due 2027-04-30
+`··········` 0% · 0 of 26 done · due 2027-04-30
 
 Partial hydration: registry, TypeScript renderer (default), Leptos renderer, wasm split, client directives, size budgets. A bet placed only if M1 finds users.
 
@@ -113,10 +116,17 @@ Partial hydration: registry, TypeScript renderer (default), Leptos renderer, was
 - [ ] `0094` Build-time error for non-serializable island props <sup>feature · p1</sup>
 - [ ] `0108` Content migrations <sup>feature · p1</sup>
 - [ ] `0110` Enforce the zero-JavaScript contract <sup>feature · p1</sup>
+- [ ] `0112` Server frames and the swap protocol <sup>feature · p0</sup>
+- [ ] `0113` Frame fallback: link and form first <sup>feature · p0</sup>
+- [ ] `0115` Rung inference in the compiler <sup>feature · p0</sup>
+- [ ] `0116` Report rung and bytes for every interactive region <sup>feature · p0</sup>
+- [ ] `0117` Spike: resumable handlers <sup>feature · p1</sup>
+- [ ] `0118` Contract declarations and enforcement <sup>feature · p1</sup>
+- [ ] `0122` Automatic cache tags from the provenance graph <sup>feature · p1</sup>
 
 ## m3 — M3 — Server
 
-`··········` 0% · 0 of 11 done · due 2027-06-30
+`··········` 0% · 0 of 12 done · due 2027-06-30
 
 output = server | hybrid, tower middleware, endpoints, server islands, standalone and WASI adapters.
 
@@ -133,10 +143,11 @@ output = server | hybrid, tower middleware, endpoints, server islands, standalon
 - [ ] `0099` Fall back to POST when a server island URL is too long <sup>feature · p2</sup>
 - [ ] `0100` waitUntil and prerendered error pages in the adapter contract <sup>feature · p1</sup>
 - [ ] `0106` tri build --changed and the deploy plan <sup>feature · p1</sup>
+- [ ] `0114` Warn when frames are far from readers <sup>feature · p2</sup>
 
 ## m4 — M4 — Platform
 
-`··········` 0% · 0 of 9 done · due 2027-09-30
+`··········` 0% · 0 of 11 done · due 2027-09-30
 
 Integrations, hosted adapters, remote loaders, live collections, incremental CI cache.
 
@@ -149,20 +160,20 @@ Integrations, hosted adapters, remote loaders, live collections, incremental CI 
 - [ ] `0075` Live collections <sup>feature · p2</sup>
 - [ ] `0076` Incremental CI cache <sup>chore · p1</sup>
 - [ ] `0077` Revisit salsa for the build graph <sup>chore · p2</sup>
-- [ ] `0078` Dioxus renderer <sup>feature · p2</sup>
 - [ ] `0087` Re-evaluate the content store <sup>chore · p3</sup>
+- [ ] `0123` Remote build cache keyed on input digests <sup>chore · p2</sup>
+- [ ] `0124` Build attestation <sup>feature · p3</sup>
+- [ ] `0125` Client-side content index <sup>feature · p2</sup>
 
 ## m5 — M5 — Ecosystem
 
-`··········` 0% · 0 of 6 done · due 2027-12-31
+`··········` 0% · 0 of 4 done · due 2027-12-31
 
 JS islands, optional sidecar SSR, CMS loaders, view transitions, i18n, published crates.
 
 ### backlog
 
 - [ ] `0079` JS framework islands via client:only <sup>feature · p1</sup>
-- [ ] `0080` Optional Node/Deno sidecar for JS SSR <sup>feature · p3</sup>
-- [ ] `0081` View transitions client router <sup>feature · p2</sup>
 - [ ] `0082` i18n: localized routes and collections <sup>feature · p2</sup>
 - [ ] `0083` CMS loaders <sup>feature · p3</sup>
 - [ ] `0084` Publish crates to crates.io <sup>chore · p1</sup>

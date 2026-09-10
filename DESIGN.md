@@ -28,6 +28,17 @@ changes are data changes — a store write and a millisecond re-render — and t
 against never moves. Everything the design does with incrementality, provenance, and reproducible
 output exists to make that split trustworthy.
 
+And a third bet, which follows from the first two and is what keeps this from being a port:
+**the server is fast enough to be the runtime.**
+
+Almost every architectural fashion of the last decade is a workaround for server rendering being
+slow and far away. Hydration exists because the server could not send a new page fast enough. Client
+routers exist because navigation was a round trip. SPA state exists because refetching was
+expensive. React Server Components exist to claw server rendering back after everything had been
+built around its absence. When a render is ~200µs against an in-process store and the binary
+deploys to the edge as a wasm component, that calculus inverts — and most of what people call
+"interactivity" stops needing a client-side framework at all. §9 turns that into a ladder.
+
 **Goals**
 
 1. HTML-out by default. A page with no islands ships **zero** bytes of JS.
@@ -572,9 +583,47 @@ That is a real trade and users should be able to see it in the file extension.
 
 ---
 
-## 9. Islands
+## 9. Interactivity
 
-### 9.1 Declaring one
+Astro offers two rungs: static HTML, or a hydrated island. That is the right shape for a JavaScript
+framework, where a server round trip costs tens of milliseconds and a component runtime is a few
+kilobytes. Our costs are the other way round — a render is microseconds, and a wasm runtime is 45 KB
+— so copying that ladder would inherit its ergonomics *and* its worst constant factor.
+
+**The ladder has four rungs, and the compiler picks the lowest one that works.**
+
+| Rung | Mechanism | Cost | Works without JS |
+|---|---|---|---|
+| 0 | The platform — `<details>`, `popover`, `:has()`, anchor positioning, view transitions | 0 B | yes |
+| 1 | **Server frame** — a fragment re-rendered on the server and swapped in | ~2 KB JS | yes, via form/link |
+| 2 | **Resumable handler** — one closure, its captured state serialized, its code fetched on demand | ~1 KB + a chunk per interaction | yes, when paired with a frame |
+| 3 | **Island** — continuous local state: canvas, editor, map | 45 KB wasm core, or ~2 KB TS | no |
+
+Rung 1 is the one most content sites need and the one no compiled framework has taken seriously.
+Filters, pagination, sort, search, forms, live prices: htmx was right that these belong on the
+server, and what htmx lacks is a server fast enough to make the round trip invisible. At 200µs a
+fragment render is cheaper than most client-side state updates.
+
+Rung 2 is Qwik's idea — do not hydrate, *resume* — and it is more natural in Rust than in
+JavaScript. Qwik needs a compiler to discover what a closure captured; `rustc` already knows, as a
+typed struct. A `#[handler]` becomes a `wasm-split` point, its captured state is serialized into the
+document with serde, and an interaction fetches one small chunk instead of booting a runtime. This
+is the direct answer to our worst structural weakness (§15).
+
+Rung 3 is what the rest of this section describes. It is where wasm's size curve actually wins, and
+after rungs 1 and 2 it should be rare.
+
+**The compiler infers the rung.** A component with no handlers and no signals is static; one whose
+only interaction is a submit is a frame; one whose handlers close over serializable state is
+resumable; one with continuous local state is an island. Marko has done automatic partial hydration
+for years while everyone else asks you to type `client:visible` — a directive is a workaround for a
+compiler that cannot infer, and ours can. Directives remain, as an override when you disagree.
+
+The risk of inference is that payload becomes surprising, so it is paired with accountability that
+cannot be skipped: `tri build --stats` prints the rung and the bytes for every interactive region,
+and the budgets in §9.2 fail the build rather than warn.
+
+### 9.1 Declaring an island
 
 ```rust
 // src/components/counter.rs
@@ -961,8 +1010,14 @@ rust-analyzer already understands, no matter how good the language is. Roughly a
 
 *M1 alone competes with Zola, with types. It is the deliverable the project is judged on.*
 
-**M2 — Islands.** `#[island]` + registry, Leptos renderer, hydration shim, `client:*` directives,
-wasm build + split + opt, dev-time island reload, size budget enforcement in CI.
+**M2 — The ladder.** Rung 1 first: server frames, the swap protocol, and the no-JS fallback proof —
+smaller than islands, more useful, and the thing that decides how much of rung 3 we ever need. Then
+rung inference with `--stats` accountability, automatic cache tags from the provenance graph, and
+the resumable-handler spike. Rung 3 lands last and smallest: `#[island]` + registry, the TypeScript
+renderer, hydration shim, wasm build and split, size budgets in CI.
+
+The sequencing is the opinion. Building islands first would produce Astro; building frames first
+produces a framework whose interactivity story is its own.
 
 **M3 — Server.** `server` and `hybrid` output, tower middleware, endpoints, `server:defer` with
 encrypted props and out-of-order streaming, `standalone` + `wasi` adapters.
@@ -1215,3 +1270,90 @@ every platform.
 | Recorded asset-field paths in stored entries | **Adopt** |
 | Corrupt cache warns and rebuilds | **Adopt** |
 | `waitUntil` and `prerenderedErrorPageFetch` in the adapter contract | **Adopt** |
+
+---
+
+## Appendix C — Beyond Astro (2026-09-10)
+
+Appendix B established what Astro does. This appendix is the wider survey: the ideas worth taking
+from everywhere else, and the ones worth refusing. It exists because a design that only reads one
+prior framework produces a port, and a port's best possible review is "impressively faithful".
+
+### C.1 What we take
+
+| Idea | From | What we take |
+|---|---|---|
+| **Resumability** | Qwik | Rung 2 (§9). Serialize captured state, attach one delegated listener, fetch a closure on demand. Better in Rust: `rustc` already knows a closure's captured environment as a typed struct, so the serialization is derived rather than discovered |
+| **Automatic partial hydration** | Marko | Rung inference. Directives are a workaround for a compiler that cannot infer; ours can, with directives kept as an override |
+| **Hypermedia over the wire** | htmx | Rung 1 (§9). htmx's analysis is correct and its constraint is a slow server. Ours is 200µs |
+| **Forms that work without JavaScript** | Remix | Progressive enhancement as a *checked* property, not a convention — see C.3 |
+| **Typed server functions** | Leptos `#[server]`, tRPC | If we do a function-call boundary, it is typed on both sides. `"use server"` is a string where a type belongs |
+| **Cross-document view transitions, speculation rules** | The platform | We do not ship a client router. Ever. Most frameworks cannot take this position because their state lives in the JS heap; ours does not |
+| **Content-addressed remote build cache** | Bazel, Turborepo | Falls out of determinism (§11) for free: inputs fully determine outputs, so a shared cache keyed on input digests is sound |
+| **Build attestation** | SLSA | Also falls out of determinism. The archival and regulated-publishing case is the one nobody else can serve |
+| **The component model** | WASI 0.2 | A site as a composable `wasm32-wasip2` component rather than a container image |
+| **Client-side typed queries** | Pagefind, local-first sync | Ship a compact subset of the content index for instant search, filter, and sort with no round trip. Generalizes Pagefind because our content is typed |
+
+### C.2 What we refuse, and why
+
+- **A client-side router.** The platform has one now. Shipping ours would be re-implementing 2019.
+- **An SPA mode.** Leptos and Dioxus own that problem and do it well.
+- **Being a sync engine.** Read-only content sync is in scope; collaborative mutable state is a
+  different product (Electric, Zero, Jazz). Saying so is worth more than hedging.
+- **Stringly-typed server boundaries**, CSS-in-JS, a client data-fetching library, and JS SSR.
+- **A configuration knob for the ladder.** The compiler picks; you override per component. A knob
+  here would be a decision we refused to make, exported to the user.
+
+Identity comes from refusals. Every item above is something a reasonable person would ask for.
+
+### C.3 Guarantees as compile errors
+
+The family the zero-JavaScript contract belongs to. A guarantee that is not enforced is a slogan,
+and every framework's performance and accessibility promises are slogans.
+
+```rust
+#![deny(javascript)]         // no byte of JS may reach this page
+#![require(no_js_fallback)]  // every interaction must work with JS disabled
+#![deny(external_requests)]  // no third-party origin on the critical path
+```
+
+Plus the budgets already in `tri.toml`, and the accessibility checks (`alt` required at compile
+time, heading order, label association, `lang`) promoted from lints to contracts a page can opt
+into. Rungs 0–2 satisfy `no_js_fallback` by construction, so the compiler can *prove* the property
+rather than test for it; rung 3 cannot, and the build says so by name.
+
+### C.4 Automatic cache tags
+
+Every other framework makes you write `revalidateTag("post-123")` by hand and then debug the one you
+forgot. We already know, per fragment, exactly which content fields a render read (§ incrementality)
+— so the cache tags **are** the dependency edges. They are derived, not typed, and a frame's cache
+policy falls out of the graph that already exists for incremental builds.
+
+This is the clearest case in the design of one mechanism paying for itself three times: incremental
+rebuilds, deploy plans, and cache invalidation are the same graph.
+
+### C.5 The second user
+
+In 2026 a large share of the code in any repository is written by an agent, and every framework
+still has exactly one designed user: a person in an editor.
+
+We are further along here than anyone, mostly by accident: deterministic builds an agent can verify,
+provenance it can query, typed content instead of `any`, and a backlog that lives in the repository.
+Finishing the thought is cheap — every diagnostic emittable as JSON, `tri explain --json`, a
+machine-readable project schema, and error messages written to be *acted on* rather than read.
+
+"The first framework designed for agents as a first-class user" is a defensible position that is
+currently unoccupied, and the prerequisites are already in the design for other reasons.
+
+### C.6 What is speculative
+
+Stated plainly, because this appendix is the most speculative part of the document:
+
+- **Rung 2 is unproven.** Qwik's serialization is subtle, and we do not know what a captured
+  reference costs when it crosses into the document. It is a spike with a kill criterion, not a
+  commitment.
+- **Rung inference is an ergonomic bet.** Implicit behaviour delights when right and infuriates when
+  wrong. It survives only if `--stats` and failing budgets make the implicit visible every build.
+- **The frame round trip depends on the origin being close.** At the edge it is invisible; from one
+  region to a reader on another continent it is not. The honest scope is: rung 1 is the default when
+  the adapter puts the origin near the reader, and `tri check` should say so when it does not.

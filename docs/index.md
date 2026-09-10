@@ -41,7 +41,9 @@ own code.
 - [Architecture](concepts/architecture.md) — the three artifacts and the render walk
 - [Incrementality and provenance](concepts/incrementality.md) — `tri impact`, `tri why`
 - [Determinism](concepts/determinism.md) — the reproducibility guarantee
-- [Islands](concepts/islands.md) — partial hydration
+- [Interactivity](concepts/interactivity.md) — the four-rung ladder, and how the compiler picks
+- [Islands](concepts/islands.md) — rung 3: partial hydration
+- [Contracts](concepts/contracts.md) — guarantees the build enforces, not slogans
 - [Errors](concepts/errors.md) — the error-quality contract
 
 ## Guides
