@@ -103,6 +103,36 @@ pub fn site() -> Site {
 Now `content::blog()` is a typed query anywhere in your site, and a markdown file missing
 `description` fails the build with the file name, the line, and the expected type.
 
+## Your first interaction
+
+Most interactivity on a content site does not need a component runtime. Start with a **server
+frame** — a region the server re-renders and the browser swaps in:
+
+```html
+---
+// src/components/post-list.tri
+#[frame(id = "posts")]
+#[props]
+fn (tag: Option<String> = None);
+
+let posts = content::blog().published().by_tag_opt(&tag);
+---
+
+{#for t in content::blog().tags()}
+  <a href={frame!(posts(tag = t))}>{ t }</a>
+{/for}
+
+{#for post in posts}
+  <Card post={post} />
+{/for}
+```
+
+Clicking a tag re-renders the list on the server and swaps it in — ~2 KB of JavaScript for the whole
+page, no component runtime, and with JavaScript disabled the same links are ordinary navigation.
+
+Reach past this only when the state is genuinely local and continuous. See
+[Interactivity](concepts/interactivity.md) for the four rungs and how the compiler picks one.
+
 ## Your first island
 
 `src/components/counter.rs`:

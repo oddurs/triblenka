@@ -30,6 +30,50 @@ static markup compiles to `sink.raw(&'static str)` over pre-concatenated literal
 `Html(s)` is the newtype that renders without escaping. `Slots` exposes `default(sink)` and
 `named("footer", sink)`, both closures rather than buffered strings.
 
+## Frames and handlers
+
+```rust
+pub trait Frame {
+    const ID: &'static str;
+    type Props<'a>: Serialize + DeserializeOwned;
+
+    /// Render just this fragment. Same code path as rendering it inside a full page.
+    async fn render(props: Self::Props<'_>, sink: &mut Sink<'_>) -> Result<()>;
+
+    /// Cache tags, derived from the fields this frame's render actually read.
+    fn tags(props: &Self::Props<'_>) -> Vec<CacheTag>;
+}
+
+pub trait Handler {
+    type Captured: Serialize + DeserializeOwned;
+    const CHUNK: ChunkId;
+    fn call(captured: Self::Captured, event: Event) -> Result<()>;
+}
+```
+
+A frame renders through the ordinary `Sink`, so a fragment and a full page share one code path and
+cannot drift. `tags()` is generated, not written — see
+[incrementality](../concepts/incrementality.md).
+
+## Contracts
+
+```rust
+pub enum Contract {
+    DenyJavaScript,
+    RequireNoJsFallback,
+    DenyExternalRequests,
+    RequireAltText,
+    RequireHeadingOrder,
+    RequireLabels,
+    RequireLang,
+}
+```
+
+Declared with inner attributes in a page's frontmatter (`#![deny(javascript)]`) or site-wide in
+`src/site.rs`. Enforcement runs over rendered output and names the component that broke the
+contract. Rungs 0–2 satisfy `RequireNoJsFallback` by construction, so it is proved from the rung
+rather than tested in a browser. See [Contracts](../concepts/contracts.md).
+
 ## Content
 
 ```rust

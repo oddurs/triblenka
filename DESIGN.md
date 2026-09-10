@@ -973,9 +973,9 @@ pub fn site() -> Site {
 |---|---|---|
 | Rust compile times destroy the authoring loop | **Highest** | Decision B (content ≠ code); cranelift dev profile; islands in a separate crate; subsecond hot-patching; the §6.3 latency table is a test, run in CI |
 | `rustc` errors surfacing in generated code | High | Span remapping + pre-flight semantic checks (§5.1); generated code never shown |
-| Wasm islands are heavier than JS islands | Medium | True: ~45 KB gz vs ~10 KB for a Preact island. Counter: zero-island pages are free, chunks are shared and cached across pages, and `vanilla`/`client:only` JS islands remain available where size dominates. We publish the numbers rather than hide them |
+| Wasm islands are heavier than JS islands | Low–Medium *(was Medium; reduced by the ladder)* | True in isolation: ~45 KB gz against ~10 KB for a Preact island. The ladder is the real answer — rung 1 costs ~2 KB and rung 2 costs a chunk per interaction, so a page reaches rung 3 only when it holds continuous local state, where the size curve favours wasm anyway. Zero-interaction pages remain free, and `--stats` publishes the numbers rather than hiding them |
 | No npm-scale component ecosystem | Medium | Lean on headless/CSS-only patterns; `client:only` JS islands as the pressure valve; ship the 20 components a docs site needs |
-| Two component notions (`.tri` server + `#[island]` client) confuses people | Medium | Astro has exactly this split and it teaches well; the compiler errors when a `.tri` component is used with a `client:` directive, with a fix-it suggesting `#[island]` |
+| Four rungs are more to learn than Astro's two | Medium | Mitigated by inference: the ladder is a *cost model* to understand, not an API to memorise, because the compiler picks the rung and `--stats` shows what it picked. The failure mode to watch is a surprising payload, which is why the stats column and failing budgets ship *with* inference rather than after it (§9). If users end up writing `rung:*` on most components, inference has failed and we should say so |
 | Inventing a template language nobody wants | Medium | Grammar is deliberately Astro-shaped; block forms are a closed set of five; everything else is Rust |
 | Scope explosion (this document describes a lot of software) | High | The §16 roadmap is ordered so that M1 is independently useful, and each milestone ships something a real site can run on |
 | `salsa`, `rolldown`, `wasm-split` are moving targets | Low–Medium | All are versioned crates; wrap each behind an internal trait so a swap is local |
@@ -1000,7 +1000,10 @@ does not work in practice, the framework is a slow Zola and should not exist.
 **M1 — A static site generator people would actually use.** Slots, scoped CSS + lightningcss,
 layouts, file routing + `route!`, `#[static_paths]`, markdown pipeline with highlighting and TOC,
 image pipeline, dev server with content + template reload, `miette` diagnostics with span mapping,
-`--verify-incremental`, `static` adapter.
+`--verify-incremental`, `static` adapter. Plus three items the ladder work added here rather than
+later, because each is cheap and shapes what comes after: platform-first navigation (view
+transitions and speculation rules, no client router), the accessibility contracts, and
+machine-readable diagnostics for the second user (Appendix C.5).
 
 **And the editor tooling, in M1, not later** — a tree-sitter grammar, a `tri-lsp` (completion for
 components and props, go-to-definition, diagnostics from the compiler), and `tri fmt`. This was

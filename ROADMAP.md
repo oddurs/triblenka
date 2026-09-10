@@ -30,7 +30,7 @@ Two kill criteria, either one stops the project.
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 52 done · due 2027-02-05
+`··········` 0% · 0 of 53 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -88,6 +88,7 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0119` Accessibility contracts <sup>feature · p2</sup>
 - [ ] `0120` Platform-first navigation <sup>feature · p2</sup>
 - [ ] `0121` Machine-readable diagnostics and CLI output <sup>feature · p1</sup>
+- [ ] `0126` Check documentation links in CI <sup>chore · p2</sup>
 
 ## m2 — M2 — The interactivity ladder
 

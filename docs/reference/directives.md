@@ -4,7 +4,63 @@
 
 Directives are attributes with a namespace prefix. They are compiler instructions, never rendered.
 
+## `rung:*` — override the inferred rung
+
+The compiler picks a rung from the [interactivity ladder](../concepts/interactivity.md); these
+override it when you disagree.
+
+| Directive | Effect |
+|---|---|
+| `rung:static` | assert the component has no interactivity — a compile error if it does |
+| `rung:frame` | force a server frame even where a resumable handler was inferred |
+| `rung:resumable` | force a resumable handler |
+| `rung:island` | force a full island |
+
+```html
+<Filters rung:frame />
+<Chart rung:island />
+<Nav rung:static />
+```
+
+An override that contradicts what the component actually does is a compile error, not a silent
+downgrade: `rung:static` on a component with a handler fails, and so does `rung:resumable` on one
+holding continuous local state.
+
+## `#[frame]` — a server-rendered fragment
+
+Declared in frontmatter rather than as a tag attribute, because a frame has an identity and a URL.
+
+```html
+---
+#[frame(id = "posts")]
+#[props]
+fn (tag: Option<String>, page: usize = 1);
+---
+```
+
+| Argument | Meaning |
+|---|---|
+| `id` | stable identity, used in the swap target and the frame URL |
+| `cache` | optional cache policy; tags are derived from the provenance graph, not written by hand |
+
+`frame!(posts(tag = t))` builds the URL for a frame with a given set of props, the same way
+`route!` builds one for a page. The rendered element is a link or a form first — the enhancement
+layers on top, which is what makes `require(no_js_fallback)` provable.
+
+## `#[handler]` — a resumable event handler
+
+```rust
+#[handler]
+fn increment(count: Signal<i32>) { count += 1; }
+```
+
+Becomes a `wasm-split` point. Captured state is serialized into the document; the code is fetched
+on first interaction. Parameters must be `Serialize + DeserializeOwned`.
+
 ## `client:*` — hydrate an island
+
+Rung 3 only. On a `.tri` component the compiler errors and suggests `#[island]`; on a component the
+compiler inferred as a frame or resumable, it errors and points at `rung:island`.
 
 | Directive | Trigger |
 |---|---|

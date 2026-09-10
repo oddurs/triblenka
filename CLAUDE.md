@@ -118,7 +118,7 @@ or a hook, or local and CI will drift.
 | Path | What |
 |---|---|
 | `DESIGN.md` | the architecture, the design review (Appendix A), the Astro source audit (Appendix B) |
-| `docs/concepts/` | why the project exists, architecture, incrementality, determinism, errors |
+| `docs/concepts/` | why the project exists, architecture, the interactivity ladder, contracts, incrementality, determinism, errors |
 | `docs/guides/`, `docs/reference/` | the intended v1 API |
 | `cairn/items/`, `ROADMAP.md` | the backlog and its rendered view — never hand-edit `ROADMAP.md` |
 | `crates/triblenka` | the library crate |
@@ -164,8 +164,9 @@ the PR, not a footnote.
 |---|---|
 | Content-only rebuild | < 50 ms (p99, fixture site) |
 | Structure-only template edit | < 100 ms end to end |
-| A page with no islands | **0 bytes** of JavaScript |
-| A page with one island | ≤ ~1.1 KB JS + one cached wasm core |
+| A page with no interactivity | **0 bytes** of JavaScript |
+| A page of server frames (rung 1) | ≤ ~2 KB JS, no wasm, whatever the frame count |
+| A page with one island (rung 3) | ≤ ~1.1 KB JS + one cached wasm core |
 | Incremental vs clean build | byte-identical (`--verify-incremental`) |
 
 ## Do not
@@ -176,6 +177,9 @@ the PR, not a footnote.
 - Add a configuration knob to avoid making a decision.
 - Compile anything in `content/**`.
 - Ship a page with JavaScript it did not ask for.
+- Reach for an island when a server frame would do. The ladder in
+  `docs/concepts/interactivity.md` is ordered by cost for a reason, and rung 3 is the last resort,
+  not the default.
 - Remove a "design-stage" banner from a docs page until that page's behaviour actually exists —
   and when it does, say so in `CHANGELOG.md`.
 - Silently narrow scope. If you cut something, file the cut piece as a cairn item so it is recorded

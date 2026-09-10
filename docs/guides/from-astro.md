@@ -21,7 +21,10 @@ Rust changes the right answer.
 | `Astro.request` | `cx.request()` | |
 | `getStaticPaths()` | `#[static_paths]` | Returns `Vec<Path<Params, Props>>` |
 | `export const prerender` | `#[prerender]` | |
-| `client:load/idle/visible/media/only` | identical | |
+| `client:load/idle/visible/media/only` | identical, rung 3 only | the compiler usually picks the rung for you |
+| — | `#[frame]` + `frame!()` | no Astro equivalent; see below |
+| — | `#[handler]` | no Astro equivalent; resumable, no hydration |
+| — | `rung:static\|frame\|resumable\|island` | override the inferred rung |
 | `server:defer` | identical | Plus out-of-order streaming |
 | `astro-island` element | `tri-island` element | Same idea, same isolation |
 | `defineCollection` + Zod | `#[derive(Collection)]` + serde | Types are the schema |
@@ -36,7 +39,21 @@ Rust changes the right answer.
 | Vite plugins | — | No JS module graph; use integrations |
 | MDX | `content/**/*.md` with registered components, or `*.md.tri` | See below |
 
-## The three real differences
+## Interactivity is a ladder, not a switch
+
+The biggest difference, and the one most likely to change how you build. Astro gives you static HTML
+or a hydrated island. Triblenka gives you four rungs — platform, server frame, resumable handler,
+island — and infers which one a component needs.
+
+In practice, most Astro islands port to **frames**, not islands: a filter, a paginated list, a
+search box, a form, a cart badge. They keep working with JavaScript disabled, and they cost ~2 KB
+for the page rather than a runtime per island. Port them by moving the state to the server and
+letting the frame re-render, rather than translating the component's `useState` into a signal.
+
+Keep an island for what genuinely holds continuous local state: a canvas, an editor, a map, a data
+grid. See [Interactivity](../concepts/interactivity.md).
+
+## The three other real differences
 
 **1. Content is data; templates are code.** Astro rebuilds everything through Vite. Triblenka
 splits them: `content/` never invokes `rustc` (millisecond rebuilds), `src/` does (sub-second to a
