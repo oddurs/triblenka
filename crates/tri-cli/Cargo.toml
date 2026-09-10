@@ -13,6 +13,9 @@ name = "tri"
 path = "src/main.rs"
 
 [dependencies]
+tri-compiler = { version = "0.0.0", path = "../tri-compiler" }
+tri-content = { version = "0.0.0", path = "../tri-content" }
+tri-core = { version = "0.0.0", path = "../tri-core" }
 triblenka = { path = "../triblenka", version = "0.0.0" }
 
 [lints]

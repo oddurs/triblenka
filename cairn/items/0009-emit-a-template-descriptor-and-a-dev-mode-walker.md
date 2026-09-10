@@ -2,12 +2,12 @@
 id: 9
 title: Emit a template descriptor and a dev-mode walker
 type: feature
-status: planned
+status: done
 milestone: m0
 depends_on:
 - 8
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 priority: p0
 effort: m
 area: compiler
