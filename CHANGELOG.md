@@ -23,6 +23,18 @@ anything may change.
   accessibility checks, enforced as build errors rather than lints
   (`docs/concepts/contracts.md`).
 
+### Added — M0
+
+- `tri-core`: the `Sink` trait, `StringSink`, HTML escaping, the `Render`/`Html` types, and the
+  template descriptor with its walker and the `is_hot_swappable_with` check that decides whether a
+  template edit needs `rustc`.
+- `tri-compiler`: a span-carrying `.tri` parser (text, interpolation, `{#if}`/`{:else}`, `{#for}`,
+  frontmatter) with actionable errors, descriptor lowering with expression interning, and a Rust
+  emitter.
+- `tri-content`: blake3 digests, a redb-backed store whose `set` short-circuits on an unchanged
+  digest, a markdown loader with frontmatter validation, and a targeted single-file load path.
+- `tri bench-m0`: the kill-criteria harness, and a deterministic fixture generator.
+
 ### Changed
 
 - M2 is no longer "Islands". It is the ladder, sequenced frames-first; islands become rung 3 and

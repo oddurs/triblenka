@@ -2,10 +2,10 @@
 id: 11
 title: Load markdown into a digest-keyed redb store
 type: feature
-status: planned
+status: done
 milestone: m0
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 priority: p0
 effort: m
 area: content

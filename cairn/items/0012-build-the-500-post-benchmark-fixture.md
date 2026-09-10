@@ -2,10 +2,10 @@
 id: 12
 title: Build the 500-post benchmark fixture
 type: chore
-status: planned
+status: done
 milestone: m0
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-10
 priority: p0
 effort: s
 area: build

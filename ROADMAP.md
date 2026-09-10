@@ -4,7 +4,7 @@
 
 ## m0 — M0 — Spike: prove the two boundaries
 
-`#·········` 9% · 1 of 11 done · due 2026-09-30
+`#########·` 82% · 9 of 11 done · due 2026-09-30
 
 Two kill criteria, either one stops the project.
 
@@ -14,23 +14,23 @@ Two kill criteria, either one stops the project.
 
 ### planned
 
-- [ ] `0007` Parse .tri into a template AST <sup>feature · p0</sup>
 - [ ] `0008` Generate a Rust module per .tri component <sup>feature · p0</sup>
-- [ ] `0009` Emit a template descriptor and a dev-mode walker <sup>feature · p0</sup>
-- [ ] `0010` Define the Sink trait and StringSink <sup>feature · p0</sup>
-- [ ] `0011` Load markdown into a digest-keyed redb store <sup>feature · p0</sup>
-- [ ] `0012` Build the 500-post benchmark fixture <sup>chore · p0</sup>
-- [ ] `0013` Measure the two M0 kill criteria <sup>feature · p0</sup>
-- [ ] `0014` M0 go/no-go <sup>chore · p0</sup>
-- [ ] `0085` Bootstrap the repository <sup>chore · p0</sup>
 
 ### done
 
+- [x] `0007` Parse .tri into a template AST <sup>feature · p0</sup>
+- [x] `0009` Emit a template descriptor and a dev-mode walker <sup>feature · p0</sup>
+- [x] `0010` Define the Sink trait and StringSink <sup>feature · p0</sup>
+- [x] `0011` Load markdown into a digest-keyed redb store <sup>feature · p0</sup>
+- [x] `0012` Build the 500-post benchmark fixture <sup>chore · p0</sup>
+- [x] `0013` Measure the two M0 kill criteria <sup>feature · p0</sup>
+- [x] `0014` M0 go/no-go <sup>chore · p0</sup>
+- [x] `0085` Bootstrap the repository <sup>chore · p0</sup>
 - [x] `0102` Astro parity audit from source <sup>docs · p1</sup>
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 53 done · due 2027-02-05
+`··········` 0% · 0 of 56 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -89,6 +89,9 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0120` Platform-first navigation <sup>feature · p2</sup>
 - [ ] `0121` Machine-readable diagnostics and CLI output <sup>feature · p1</sup>
 - [ ] `0126` Check documentation links in CI <sup>chore · p2</sup>
+- [ ] `0127` Full content rescan does not scale <sup>bug · p1</sup>
+- [ ] `0128` Cold build is slower than the design target <sup>bug · p1</sup>
+- [ ] `0129` Compile what codegen emits <sup>feature · p0</sup>
 
 ## m2 — M2 — The interactivity ladder
 
