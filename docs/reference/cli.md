@@ -45,13 +45,18 @@ rebuild → re-hydrate only that island.
 `--stats` output:
 
 ```
-route                     html     css      js     wasm   render
-/                        12.4 KB  3.1 KB  1.1 KB  44 KB    1.8ms
-/blog                    31.0 KB  3.4 KB      0       0    3.2ms
-/blog/hello-world        22.7 KB  4.0 KB  1.1 KB  44 KB    2.1ms
-─────────────────────────────────────────────────────────────────
+route                     html     css      js     wasm   render  rung
+/                        12.4 KB  3.1 KB      0       0    1.8ms  static
+/blog                    31.0 KB  3.4 KB  2.0 KB      0    3.2ms  frame    PostList
+/blog/hello-world        22.7 KB  4.0 KB      0       0    2.1ms  static
+/tools/diff              18.2 KB  2.8 KB  1.1 KB  44 KB    1.4ms  island   DiffViewer
+─────────────────────────────────────────────────────────────────────────
 1,204 routes in 6.1s  ·  cache hit 96%  ·  0 budget violations
 ```
+
+The `rung` column is the accountability half of rung inference: the compiler picks, and every build
+shows you what it picked and what that cost. See
+[Interactivity](../concepts/interactivity.md).
 
 ## `tri check`
 
@@ -73,7 +78,8 @@ route      /blog/:slug          src/pages/blog/[slug].tri
 mode       prerendered          via #[static_paths] (1,204 paths)
 data       collection `blog`    content/blog/hello-world.md  digest 7b2c…
 components Base, Prose, Card    3 components, 4.0 KB scoped CSS
-islands    Newsletter           client:visible → isl_a1b2.wasm (3.2 KB) + core (44 KB)
+rung       frame                inferred; PostList, 2.0 KB shared page script
+islands    none                 —
 output     dist/blog/hello-world/index.html   22.7 KB
 ```
 

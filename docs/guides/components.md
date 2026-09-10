@@ -5,6 +5,11 @@
 A `.tri` file is a server component: Rust frontmatter, then markup. It runs on the server,
 produces HTML, and ships no JavaScript.
 
+Interactivity is not declared here. If a component needs to do something in the browser, the
+compiler infers which rung of the [interactivity ladder](../concepts/interactivity.md) it needs —
+usually a server frame rather than an island — and you override with `rung:*` only when you
+disagree.
+
 ```html
 ---
 // frontmatter: Rust

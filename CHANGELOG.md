@@ -28,6 +28,12 @@ anything may change.
 - M2 is no longer "Islands". It is the ladder, sequenced frames-first; islands become rung 3 and
   land last. Building islands first would have produced an Astro port.
 
+### Fixed
+
+- Documentation drift from the ladder change: the reference pages had no `#[frame]`, `frame!()`,
+  `#[handler]`, `rung:*` or contract entries, three guides still taught islands as the only
+  interactivity story, and two risk rows plus the M1 roadmap prose in `DESIGN.md` were stale.
+
 ### Removed
 
 - The client-side router, the Node/Deno sidecar for JavaScript SSR, and the second Rust island
