@@ -9,7 +9,7 @@ depends_on:
 - 11
 - 12
 created: 2026-09-09
-updated: 2026-09-10
+updated: 2026-09-11
 priority: p0
 effort: m
 area: build
@@ -44,3 +44,16 @@ Both budgets met at every size, and the content path is flat with site size rath
 ## 2026-09-10
 
 One judgement call worth recording: the first harness measured a full directory rescan, which FAILED at 2,000 posts (p99 51.9 ms). That is the pessimistic path, not the dev loop — a watcher knows which file changed — so a targeted load_file path was added and is what criterion 1 now measures. The rescan is still reported alongside, and still fails at 10,000 posts (p99 824 ms). Filed as follow-up work rather than hidden.
+
+## 2026-09-11
+
+Corrected after the M0 review (2026-09-11).
+
+The original run reported 'p99' from 50 samples, where the p99 index rounds to the last one — those figures were the maximum, not a percentile. Re-measured with 200 samples (20 for the rescan), and with the review's fixes in place:
+
+| posts | content edit p50/p99 | template markup edit p50/p99 |
+|---|---|---|
+| 500 | 4.1 ms / 5.1 ms | 58 us / 83 us |
+| 10,000 | 4.0 ms / 6.9 ms | 60 us / 86 us |
+
+Both criteria still pass, with more headroom than first reported. The review also added the missing assertion that each iteration did real work — the targeted loop could previously have measured a no-op and reported a fast PASS.

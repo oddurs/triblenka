@@ -30,7 +30,7 @@ Two kill criteria, either one stops the project.
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 56 done · due 2027-02-05
+`··········` 0% · 0 of 58 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -92,6 +92,8 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0127` Full content rescan does not scale <sup>bug · p1</sup>
 - [ ] `0128` Cold build is slower than the design target <sup>bug · p1</sup>
 - [ ] `0129` Compile what codegen emits <sup>feature · p0</sup>
+- [ ] `0130` Expression scanner truncates at a brace inside a string <sup>bug · p1</sup>
+- [ ] `0131` Deleted source files leave their entries behind <sup>bug · p1</sup>
 
 ## m2 — M2 — The interactivity ladder
 

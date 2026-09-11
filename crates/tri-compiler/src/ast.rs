@@ -52,6 +52,8 @@ pub enum Node {
         source: String,
         /// Where it came from.
         span: Span,
+        /// True when the interpolation sits inside a tag, and therefore inside an attribute value.
+        attribute: bool,
     },
     /// `{#if cond}` … `{:else}` … `{/if}`
     If {

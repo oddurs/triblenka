@@ -12,7 +12,10 @@
 mod sink;
 mod template;
 
-pub use sink::{Html, Render, Sink, SinkExt, StringSink, escape_attr, escape_text};
+pub use sink::{
+    AttributeSink, Html, Render, Sink, SinkExt, StringSink, escape_attr, escape_text,
+    escaped_attribute,
+};
 pub use template::{Bindings, Node, Template, render};
 
 /// Errors raised while rendering.

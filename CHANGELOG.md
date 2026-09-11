@@ -42,6 +42,14 @@ anything may change.
 
 ### Fixed
 
+- Interpolation inside a tag is escaped for attribute context, so a value containing a quote can no
+  longer close the attribute it sits in. Text context is unchanged, and ampersands are not
+  double-escaped.
+- Content keys are derived from a document's path rather than its file stem; two files with the
+  same name in different directories no longer collapse into one entry, silently losing one.
+- The M0 harness asserts that each iteration did real work, and takes enough samples for its p99 to
+  be a percentile rather than the largest of fifty.
+
 - Documentation drift from the ladder change: the reference pages had no `#[frame]`, `frame!()`,
   `#[handler]`, `rung:*` or contract entries, three guides still taught islands as the only
   interactivity story, and two risk rows plus the M1 roadmap prose in `DESIGN.md` were stale.

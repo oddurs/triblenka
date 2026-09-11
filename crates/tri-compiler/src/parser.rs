@@ -65,9 +65,17 @@ impl<'a> Parser<'a> {
     fn nodes(&mut self, inside: Option<&str>) -> Result<Vec<Node>, ParseError> {
         let mut nodes = Vec::new();
         let mut text_start = self.pos;
+        // Whether the scanner is between `<` and `>`, which is how an interpolation learns that it
+        // lands in an attribute value and must escape quotes too.
+        let mut in_tag = false;
 
         while self.pos < self.bytes.len() {
             if self.bytes[self.pos] != b'{' {
+                match self.bytes[self.pos] {
+                    b'<' => in_tag = true,
+                    b'>' => in_tag = false,
+                    _ => {}
+                }
                 self.pos += 1;
                 continue;
             }
@@ -104,7 +112,7 @@ impl<'a> Parser<'a> {
             let node = if next == Some(b'#') {
                 self.block(brace)?
             } else {
-                self.interpolation(brace)?
+                self.interpolation(brace, in_tag)?
             };
             nodes.push(node);
             text_start = self.pos;
@@ -120,7 +128,7 @@ impl<'a> Parser<'a> {
         Ok(nodes)
     }
 
-    fn interpolation(&mut self, brace: usize) -> Result<Node, ParseError> {
+    fn interpolation(&mut self, brace: usize, attribute: bool) -> Result<Node, ParseError> {
         let (source, span) = self.take_braced(brace)?;
         let trimmed = source.trim();
         if trimmed.is_empty() {
@@ -132,6 +140,7 @@ impl<'a> Parser<'a> {
         Ok(Node::Expr {
             source: trimmed.to_owned(),
             span,
+            attribute,
         })
     }
 
@@ -289,7 +298,8 @@ mod tests {
             parsed[1],
             Node::Expr {
                 source: "post.title".into(),
-                span: Span::new(4, 18)
+                span: Span::new(4, 18),
+                attribute: false
             }
         );
     }
@@ -301,8 +311,26 @@ mod tests {
             parsed[0],
             Node::Expr {
                 source: "posts.iter().map(|p| { p.title })".into(),
-                span: Span::new(0, 37)
+                span: Span::new(0, 37),
+                attribute: false
             }
+        );
+    }
+
+    #[test]
+    fn an_interpolation_inside_a_tag_is_marked_as_an_attribute() {
+        let parsed = nodes(r#"<meta content="{ description }"><p>{ body }</p>"#);
+        let flags: Vec<bool> = parsed
+            .iter()
+            .filter_map(|n| match n {
+                Node::Expr { attribute, .. } => Some(*attribute),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            flags,
+            vec![true, false],
+            "attribute context must be detected"
         );
     }
 

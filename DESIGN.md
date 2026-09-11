@@ -997,23 +997,35 @@ build of a 500-post blog. Measure both loops.
 50 ms, and a structure-only template edit must be under 100 ms end to end. If descriptor swapping
 does not work in practice, the framework is a slow Zola and should not exist.
 
-**Result — GO (2026-09-10).** Measured on the generated fixture, release profile, 50 iterations:
+**Result — GO (2026-09-10, figures corrected after review on 2026-09-11).** Measured on the
+generated fixture, release profile, 200 iterations:
 
 | posts | content edit → page on disk | template markup edit → page on disk |
 |---|---|---|
-| 500 | p50 3.9 ms · p99 9.1 ms | p50 57 µs · p99 243 µs |
-| 2,000 | p50 4.0 ms · p99 8.4 ms | p50 37 µs · p99 208 µs |
-| 10,000 | p50 3.9 ms · p99 10.0 ms | p50 40 µs · p99 72 µs |
+| 500 | p50 4.1 ms · p99 5.1 ms | p50 58 µs · p99 83 µs |
+| 10,000 | p50 4.0 ms · p99 6.9 ms | p50 60 µs · p99 86 µs |
+
+*(The first run reported "p99" from 50 samples, where that index rounds to the last one — those
+were maxima, not percentiles. The review raised the sample count and added the missing assertion
+that every iteration did real work.)*
 
 Both budgets are met at every size, and the content path is *flat* with site size rather than
 linear, because the watcher names the changed file and no directory is rescanned. The descriptor
 mechanism — re-parse, lower, verify the expression table is unchanged, re-render — costs tens of
 microseconds, which is roughly 1,400× under its budget.
 
-Two honest caveats, both filed rather than buried. The *full rescan* path, which a watcher never
-takes but a cold start does, fails at 10,000 posts (p99 824 ms) and needs an mtime pre-filter and
-parallel hashing. And the codegen path emits Rust but nothing compiles it yet, so its half of §5.1
-is asserted rather than demonstrated.
+Caveats, all filed rather than buried. The *full rescan* path, which a watcher never takes but a
+cold start does, fails at 10,000 posts (p99 941 ms) and needs an mtime pre-filter and parallel
+hashing. A cold build of 10,000 pages takes 44 s against the 8 s target in §11, because every entry
+gets its own store transaction and rendering is single-threaded. And the codegen path emits Rust
+but nothing compiles it yet, so its half of §5.1 is asserted rather than demonstrated.
+
+A review of the spike (2026-09-11) found four defects in the code it produced: attribute-context
+interpolation was escaped with text rules and so could close the attribute, entry keys came from
+the file stem and silently collapsed two documents with the same name in different directories, the
+expression scanner truncates at a `}` inside a string literal, and deleted source files leave their
+entries behind. The first two are fixed; the last two are filed with the probes that reproduce
+them.
 
 **M1 — A static site generator people would actually use.** Slots, scoped CSS + lightningcss,
 layouts, file routing + `route!`, `#[static_paths]`, markdown pipeline with highlighting and TOC,
