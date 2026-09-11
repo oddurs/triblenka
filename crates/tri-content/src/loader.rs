@@ -40,11 +40,7 @@ pub fn load_dir(dir: &Path, store: &Store) -> Result<LoadReport> {
     for path in paths {
         let bytes = std::fs::read(&path)?;
         let digest = Digest::of(&bytes);
-        let slug = path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("untitled")
-            .to_owned();
+        let slug = slug_for(dir, &path);
         let key = format!("blog/{slug}");
 
         if known.get(&key) == Some(&digest) {
@@ -73,14 +69,10 @@ pub fn load_dir(dir: &Path, store: &Store) -> Result<LoadReport> {
 /// # Errors
 ///
 /// Fails on an unreadable file, malformed frontmatter, or a store write failure.
-pub fn load_file(path: &Path, store: &Store) -> Result<Option<String>> {
+pub fn load_file(root: &Path, path: &Path, store: &Store) -> Result<Option<String>> {
     let bytes = std::fs::read(path)?;
     let digest = Digest::of(&bytes);
-    let slug = path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("untitled")
-        .to_owned();
+    let slug = slug_for(root, path);
     let key = format!("blog/{slug}");
 
     if store.digest_of(&key)?.as_ref() == Some(&digest) {
@@ -92,6 +84,26 @@ pub fn load_file(path: &Path, store: &Store) -> Result<Option<String>> {
     match store.set(&key, &post, &digest)? {
         Changed::Yes => Ok(Some(key)),
         Changed::No => Ok(None),
+    }
+}
+
+/// The slug for `path`, derived from its location under `root`.
+///
+/// Path-derived rather than stem-derived: two files with the same stem in different directories are
+/// different documents, and collapsing them silently loses one (found in the M0 review).
+fn slug_for(root: &Path, path: &Path) -> String {
+    let relative = path.strip_prefix(root).unwrap_or(path);
+    let without_extension = relative.with_extension("");
+    let mut parts: Vec<String> = Vec::new();
+    for component in without_extension.components() {
+        if let std::path::Component::Normal(part) = component {
+            parts.push(part.to_string_lossy().into_owned());
+        }
+    }
+    if parts.is_empty() {
+        "untitled".to_owned()
+    } else {
+        parts.join("/")
     }
 }
 
@@ -199,11 +211,14 @@ mod tests {
         load_dir(&dir, &store).expect("loads");
 
         // Unchanged: the digest matches, so nothing is parsed or written.
-        assert_eq!(load_file(&dir.join("a.md"), &store).expect("loads"), None);
+        assert_eq!(
+            load_file(&dir, &dir.join("a.md"), &store).expect("loads"),
+            None
+        );
 
         write(&dir, "a.md", &POST.replace("Some *body*", "Edited *body*"));
         assert_eq!(
-            load_file(&dir.join("a.md"), &store).expect("loads"),
+            load_file(&dir, &dir.join("a.md"), &store).expect("loads"),
             Some("blog/a".to_owned())
         );
     }

@@ -25,7 +25,16 @@ fn lower_nodes(nodes: &[Node], expressions: &mut Vec<String>) -> Vec<RtNode> {
                 Some(RtNode::Static(previous)) => previous.push_str(value),
                 _ => out.push(RtNode::Static(value.clone())),
             },
-            Node::Expr { source, .. } => out.push(RtNode::Expr(intern(expressions, source))),
+            Node::Expr {
+                source, attribute, ..
+            } => {
+                let index = intern(expressions, source);
+                out.push(if *attribute {
+                    RtNode::ExprAttr(index)
+                } else {
+                    RtNode::Expr(index)
+                });
+            }
             Node::If {
                 cond,
                 then,

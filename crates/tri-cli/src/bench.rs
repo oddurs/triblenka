@@ -15,7 +15,12 @@ use std::time::{Duration, Instant};
 use tri_content::{Post, Store};
 use tri_core::{StringSink, Template};
 
-const ITERATIONS: usize = 50;
+/// Enough samples that the 99th percentile is a percentile rather than the maximum: with 50
+/// samples the p99 index rounds to the last one, which overstates what was measured.
+const ITERATIONS: usize = 200;
+
+/// The rescan is two orders of magnitude slower, so it gets fewer samples.
+const RESCAN_ITERATIONS: usize = 20;
 
 /// Outcome of one measured loop.
 struct Measurements {
@@ -57,7 +62,9 @@ pub fn run(count: usize) -> Result<bool, Box<dyn std::error::Error>> {
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(&out)?;
 
-    println!("M0 kill criteria — {count} posts, {ITERATIONS} iterations each\n");
+    println!(
+        "M0 kill criteria — {count} posts, {ITERATIONS} iterations ({RESCAN_ITERATIONS} for the rescan)\n"
+    );
 
     fixture::generate(&content, count)?;
     let store = Store::open(&root.join("store.redb"))?;
@@ -111,12 +118,21 @@ fn measure_targeted_edit(
         std::fs::write(&target, &edited)?;
 
         let start = Instant::now();
-        if let Some(key) = tri_content::load_file(&target, store)?
+        let mut rendered = false;
+        if let Some(key) = tri_content::load_file(content, &target, store)?
             && let Some(post) = store.get::<Post>(&key)?
         {
             write_page(out, &post, template)?;
+            rendered = true;
         }
         samples.push(start.elapsed());
+
+        // A benchmark that silently measures a no-op is worse than no benchmark. The rescan loop
+        // asserted its work; this one did not, until the M0 review.
+        assert!(
+            rendered,
+            "iteration {iteration} did no work: the edit did not change the file's digest"
+        );
     }
 
     std::fs::write(&target, original)?;
@@ -130,11 +146,11 @@ fn measure_content_rescan(
     store: &Store,
     template: &Template,
 ) -> Result<Measurements, Box<dyn std::error::Error>> {
-    let mut samples = Vec::with_capacity(ITERATIONS);
+    let mut samples = Vec::with_capacity(RESCAN_ITERATIONS);
     let target = content.join("post-0042.md");
     let original = std::fs::read_to_string(&target)?;
 
-    for iteration in 0..ITERATIONS {
+    for iteration in 0..RESCAN_ITERATIONS {
         let edited = original.replace("harbour", &format!("harbour-{iteration}"));
         std::fs::write(&target, &edited)?;
 

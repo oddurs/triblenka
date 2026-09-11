@@ -46,8 +46,14 @@ fn emit_nodes(nodes: &[Node], depth: usize, out: &mut String) {
         flush(&mut pending, &pad, out);
         match node {
             Node::Text { .. } => unreachable!("handled above"),
-            Node::Expr { source, .. } => {
-                let _ = writeln!(out, "{pad}sink.escaped(&({source}))?;");
+            Node::Expr {
+                source, attribute, ..
+            } => {
+                if *attribute {
+                    let _ = writeln!(out, "{pad}tri_core::escaped_attribute(sink, &({source}))?;");
+                } else {
+                    let _ = writeln!(out, "{pad}sink.escaped(&({source}))?;");
+                }
             }
             Node::If {
                 cond,

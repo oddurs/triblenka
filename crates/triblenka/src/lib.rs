@@ -10,7 +10,7 @@
 
 /// The stage the project is currently at.
 ///
-/// Every public item in this crate is expected to change until [`Stage::Design`] is behind us.
+/// Every public item in this crate is expected to change until [`Stage::Spike`] is behind us.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
     /// Architecture settled, implementation not started.
@@ -20,7 +20,7 @@ pub enum Stage {
 }
 
 /// The stage this build of the crate represents.
-pub const STAGE: Stage = Stage::Design;
+pub const STAGE: Stage = Stage::Spike;
 
 /// The version of this crate, taken from Cargo at compile time.
 #[must_use]
@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn reports_its_stage_and_version() {
-        assert_eq!(STAGE, Stage::Design);
+        assert_eq!(STAGE, Stage::Spike);
         assert!(!version().is_empty());
     }
 }

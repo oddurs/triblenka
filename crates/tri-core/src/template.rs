@@ -8,8 +8,13 @@ use crate::{Error, Result, Sink};
 pub enum Node {
     /// A run of static markup, written through without escaping.
     Static(String),
-    /// Write expression `index`, escaped.
+    /// Write expression `index`, escaped for text content.
     Expr(usize),
+    /// Write expression `index`, escaped for an attribute value.
+    ///
+    /// A separate node rather than a flag because the walker must wrap the sink, and because a
+    /// descriptor that loses this distinction is an injection vector.
+    ExprAttr(usize),
     /// Branch on expression `cond`.
     If {
         /// Index of the condition expression.
@@ -98,6 +103,11 @@ fn walk(
             Node::Expr(index) => {
                 check(*index, expression_count)?;
                 bindings.value(*index, sink)?;
+            }
+            Node::ExprAttr(index) => {
+                check(*index, expression_count)?;
+                let mut wrapped = crate::AttributeSink(sink);
+                bindings.value(*index, &mut wrapped)?;
             }
             Node::If {
                 cond,

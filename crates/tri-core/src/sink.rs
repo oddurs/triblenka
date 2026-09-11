@@ -131,6 +131,39 @@ fn escape_with(s: &str, attribute: bool) -> String {
     out
 }
 
+/// Wraps a sink so quotes are escaped as well as `&<>`.
+///
+/// Text escaping already handled `&`, `<` and `>`, so this only adds `"` and `'` — it cannot
+/// double-escape, and it is what makes an interpolation inside an attribute safe.
+pub struct AttributeSink<'a>(pub &'a mut dyn Sink);
+
+impl Sink for AttributeSink<'_> {
+    fn raw(&mut self, s: &str) -> Result<()> {
+        if !s.bytes().any(|b| matches!(b, b'"' | b'\'')) {
+            return self.0.raw(s);
+        }
+        let mut out = String::with_capacity(s.len() + 8);
+        for ch in s.chars() {
+            match ch {
+                '"' => out.push_str("&quot;"),
+                '\'' => out.push_str("&#39;"),
+                other => out.push(other),
+            }
+        }
+        self.0.raw(&out)
+    }
+}
+
+/// Write a value into an attribute value, escaping quotes as well as `&<>`.
+///
+/// # Errors
+///
+/// Propagates whatever the underlying sink reports.
+pub fn escaped_attribute(sink: &mut dyn Sink, value: &dyn Render) -> Result<()> {
+    let mut wrapped = AttributeSink(sink);
+    value.render_to(&mut wrapped)
+}
+
 /// A sink that builds a `String`.
 ///
 /// Size hints matter: a page re-rendered with a hint from its previous render allocates once.
