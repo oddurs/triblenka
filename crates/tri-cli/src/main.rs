@@ -4,6 +4,7 @@
 
 mod bench;
 mod bindings;
+mod experiment;
 mod fixture;
 
 fn main() -> std::process::ExitCode {
@@ -19,6 +20,16 @@ fn main() -> std::process::ExitCode {
                 }
                 Err(error) => {
                     eprintln!("bench failed: {error}");
+                    std::process::ExitCode::FAILURE
+                }
+            }
+        }
+        Some("experiment-0103") => {
+            let count = args.get(1).and_then(|n| n.parse().ok()).unwrap_or(10_000);
+            match experiment::run(count) {
+                Ok(()) => std::process::ExitCode::SUCCESS,
+                Err(error) => {
+                    eprintln!("experiment failed: {error}");
                     std::process::ExitCode::FAILURE
                 }
             }
@@ -42,6 +53,7 @@ fn main() -> std::process::ExitCode {
             println!();
             println!("  tri bench-m0 [count]   measure the two M0 kill criteria");
             println!("  tri fixture [count]    write the benchmark fixture");
+            println!("  tri experiment-0103    field-level incrementality experiment");
             println!();
             println!("  DESIGN.md   the architecture   ROADMAP.md   what is planned");
             std::process::ExitCode::SUCCESS

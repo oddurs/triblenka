@@ -4,7 +4,7 @@
 
 ## m0 — M0 — Spike: prove the two boundaries
 
-`#########·` 82% · 9 of 11 done · due 2026-09-30
+`##########` 91% · 10 of 11 done · due 2026-09-30
 
 Two kill criteria, either one stops the project.
 
@@ -12,13 +12,10 @@ Two kill criteria, either one stops the project.
 
 - [ ] `0103` Field-level incrementality <sup>feature · p1</sup>
 
-### planned
-
-- [ ] `0008` Generate a Rust module per .tri component <sup>feature · p0</sup>
-
 ### done
 
 - [x] `0007` Parse .tri into a template AST <sup>feature · p0</sup>
+- [x] `0008` Generate a Rust module per .tri component <sup>feature · p0</sup>
 - [x] `0009` Emit a template descriptor and a dev-mode walker <sup>feature · p0</sup>
 - [x] `0010` Define the Sink trait and StringSink <sup>feature · p0</sup>
 - [x] `0011` Load markdown into a digest-keyed redb store <sup>feature · p0</sup>
@@ -30,7 +27,7 @@ Two kill criteria, either one stops the project.
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 58 done · due 2027-02-05
+`··········` 0% · 0 of 63 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -94,6 +91,11 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0129` Compile what codegen emits <sup>feature · p0</sup>
 - [ ] `0130` Expression scanner truncates at a brace inside a string <sup>bug · p1</sup>
 - [ ] `0131` Deleted source files leave their entries behind <sup>bug · p1</sup>
+- [ ] `0132` Collection membership changes must invalidate readers <sup>feature · p1</sup>
+- [ ] `0133` Attribute context is lost inside blocks and after a literal gt <sup>bug · p0</sup>
+- [ ] `0134` Rescan p99 is still the maximum, and Html in attributes is undefined <sup>bug · p1</sup>
+- [ ] `0135` Slug derivation degrades to absolute paths <sup>bug · p1</sup>
+- [ ] `0136` Generated code does not compile: SinkExt is not imported <sup>bug · p1</sup>
 
 ## m2 — M2 — The interactivity ladder
 

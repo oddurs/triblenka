@@ -88,7 +88,24 @@ pub trait Bindings {
 /// Returns [`Error::UnknownExpression`] if the descriptor references an expression the bindings do
 /// not provide, and propagates write failures from the sink.
 pub fn render(template: &Template, bindings: &dyn Bindings, sink: &mut dyn Sink) -> Result<()> {
-    walk(&template.nodes, template.expressions.len(), bindings, sink)
+    walk(
+        &template.nodes,
+        template.expressions.len(),
+        bindings,
+        sink,
+        None,
+    )
+}
+
+/// The tracked walk, used by [`crate::render_tracked`]. Same traversal, recording as it goes.
+pub(crate) fn walk_tracked(
+    nodes: &[Node],
+    expression_count: usize,
+    bindings: &dyn Bindings,
+    sink: &mut dyn Sink,
+    recorder: &crate::tracking::Recorder,
+) -> Result<()> {
+    walk(nodes, expression_count, bindings, sink, Some(recorder))
 }
 
 fn walk(
@@ -96,16 +113,19 @@ fn walk(
     expression_count: usize,
     bindings: &dyn Bindings,
     sink: &mut dyn Sink,
+    recorder: Option<&crate::tracking::Recorder>,
 ) -> Result<()> {
     for node in nodes {
         match node {
             Node::Static(text) => sink.raw(text)?,
             Node::Expr(index) => {
                 check(*index, expression_count)?;
+                mark(recorder, *index);
                 bindings.value(*index, sink)?;
             }
             Node::ExprAttr(index) => {
                 check(*index, expression_count)?;
+                mark(recorder, *index);
                 let mut wrapped = crate::AttributeSink(sink);
                 bindings.value(*index, &mut wrapped)?;
             }
@@ -115,24 +135,34 @@ fn walk(
                 otherwise,
             } => {
                 check(*cond, expression_count)?;
+                mark(recorder, *cond);
                 let branch = if bindings.truthy(*cond) {
                     then
                 } else {
                     otherwise
                 };
-                walk(branch, expression_count, bindings, sink)?;
+                walk(branch, expression_count, bindings, sink, recorder)?;
             }
             Node::For { seq, body } => {
                 check(*seq, expression_count)?;
+                mark(recorder, *seq);
                 for item in 0..bindings.seq_len(*seq) {
                     if let Some(scope) = bindings.seq_item(*seq, item) {
-                        walk(body, expression_count, scope, sink)?;
+                        // The recorder follows the walk into the child scope, which is the whole
+                        // reason recording lives here rather than in a `Bindings` wrapper.
+                        walk(body, expression_count, scope, sink, recorder)?;
                     }
                 }
             }
         }
     }
     Ok(())
+}
+
+fn mark(recorder: Option<&crate::tracking::Recorder>, index: usize) {
+    if let Some(recorder) = recorder {
+        recorder.mark(index);
+    }
 }
 
 fn check(index: usize, available: usize) -> Result<()> {

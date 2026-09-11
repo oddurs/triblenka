@@ -43,9 +43,17 @@ When neither can resolve an access precisely, the tracker **degrades soundly to 
 Being conservative costs a rebuild; being clever and wrong costs a stale page, so the failure
 direction is not negotiable.
 
-> **Status:** field-level tracking is an M0 *experiment*, not an M1 commitment. The open question is
-> whether the bookkeeping costs less than the rebuilds it saves on small sites. If it does not, it
-> ships only above a size threshold, or not at all. The docs will say which.
+> **Status: measured, and it pays.** The experiment ran at M0 (`tri experiment-0103`). Tracking
+> costs **83 ns** per page render and the decision costs **42 ns**; a single avoided index rebuild
+> over 10,000 posts saves **1.4 ms**. Break-even is around seventeen thousand tracked renders per
+> avoided rebuild, so on any site with listing pages it pays immediately. It ships unconditionally,
+> with no size threshold.
+>
+> One design correction came out of the experiment: recording happens in the *walker*, not in a
+> `Bindings` wrapper. A wrapper cannot follow the render into a loop body, because `seq_item` hands
+> back a borrowed child with nowhere to put a wrapper — so every read inside a `{#for}` went
+> unrecorded, and an index page would not have rebuilt when a post title changed. Under-invalidation
+> is the failure mode that serves stale pages, and it was silent.
 
 ## `tri impact` — what did this change touch?
 

@@ -11,12 +11,14 @@
 
 mod sink;
 mod template;
+mod tracking;
 
 pub use sink::{
     AttributeSink, Html, Render, Sink, SinkExt, StringSink, escape_attr, escape_text,
     escaped_attribute,
 };
 pub use template::{Bindings, Node, Template, render};
+pub use tracking::{Observed, render_tracked};
 
 /// Errors raised while rendering.
 #[derive(Debug, thiserror::Error)]
