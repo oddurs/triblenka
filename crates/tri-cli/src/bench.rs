@@ -98,6 +98,10 @@ pub fn run(count: usize) -> Result<bool, Box<dyn std::error::Error>> {
         Duration::from_millis(100),
     );
 
+    // The fixture and its rendered output are large; do not leave them on the disk.
+    drop(store);
+    let _ = std::fs::remove_dir_all(&root);
+
     println!();
     Ok(content_ok && template_ok)
 }
