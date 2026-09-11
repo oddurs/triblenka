@@ -109,6 +109,8 @@ pub enum ParseErrorKind {
     UnclosedFrontmatter,
     /// A block name we do not know.
     UnknownBlock(String),
+    /// An interpolation in an attribute value that is not quoted.
+    UnquotedAttribute,
 }
 
 impl fmt::Display for ParseErrorKind {
@@ -129,6 +131,10 @@ impl fmt::Display for ParseErrorKind {
                     "unknown block `{{#{name}}}`; expected one of `if`, `for`"
                 )
             }
+            Self::UnquotedAttribute => write!(
+                f,
+                "interpolation into an unquoted attribute value; wrap the value in quotes"
+            ),
         }
     }
 }

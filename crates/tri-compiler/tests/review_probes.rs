@@ -59,3 +59,58 @@ fn probe_html_newtype_still_bypasses_escaping_as_designed() {
     sink.escaped(&Html("<em>ok</em>")).expect("renders");
     assert_eq!(sink.into_string(), "<em>ok</em>");
 }
+
+struct Always(&'static str);
+impl Bindings for Always {
+    fn value(&self, _index: usize, sink: &mut dyn Sink) -> Result<()> {
+        sink.escaped(&self.0)
+    }
+    fn truthy(&self, _index: usize) -> bool {
+        true
+    }
+}
+
+const PAYLOAD: &str = r#"a" onload="evil()"#;
+
+fn render_str(source: &str, value: &'static str) -> String {
+    let doc = parse(source).expect("parses");
+    let template = tri_compiler::descriptor::lower(&doc);
+    let mut sink = StringSink::new();
+    render(&template, &Always(value), &mut sink).expect("renders");
+    sink.into_string()
+}
+
+#[test]
+fn attribute_context_survives_a_block_body() {
+    let html = render_str(r#"<a title="{#if c}{ x }{/if}">y</a>"#, PAYLOAD);
+    assert!(!html.contains(r#"onload="evil()""#), "{html}");
+    assert!(html.contains("&quot;"), "{html}");
+}
+
+#[test]
+fn a_literal_gt_inside_an_attribute_does_not_end_tag_context() {
+    let html = render_str(r#"<a data-r="a > b" title="{ x }">y</a>"#, PAYLOAD);
+    assert!(!html.contains(r#"onload="evil()""#), "{html}");
+}
+
+#[test]
+fn a_literal_lt_in_prose_does_not_start_tag_context() {
+    let html = render_str("<p>1 &lt; 2 { x }</p>", "it's fine");
+    assert_eq!(html, "<p>1 &lt; 2 it's fine</p>");
+}
+
+#[test]
+fn interpolation_into_an_unquoted_attribute_is_rejected() {
+    let error = parse(r#"<a title={ x }>y</a>"#).expect_err("must be rejected");
+    assert_eq!(error.kind, tri_compiler::ParseErrorKind::UnquotedAttribute);
+    assert!(
+        format!("{error}").contains("wrap the value in quotes"),
+        "{error}"
+    );
+}
+
+#[test]
+fn single_quoted_attributes_are_tracked_too() {
+    let html = render_str("<a title='{ x }'>y</a>", "it's");
+    assert_eq!(html, "<a title='it&#39;s'>y</a>");
+}

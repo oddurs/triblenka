@@ -2,7 +2,7 @@
 id: 103
 title: Field-level incrementality
 type: feature
-status: backlog
+status: done
 milestone: m0
 created: 2026-09-09
 updated: 2026-09-11

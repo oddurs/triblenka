@@ -4,13 +4,9 @@
 
 ## m0 — M0 — Spike: prove the two boundaries
 
-`##########` 91% · 10 of 11 done · due 2026-09-30
+`##########` 100% · 11 of 11 done · due 2026-09-30
 
 Two kill criteria, either one stops the project.
-
-### backlog
-
-- [ ] `0103` Field-level incrementality <sup>feature · p1</sup>
 
 ### done
 
@@ -24,10 +20,11 @@ Two kill criteria, either one stops the project.
 - [x] `0014` M0 go/no-go <sup>chore · p0</sup>
 - [x] `0085` Bootstrap the repository <sup>chore · p0</sup>
 - [x] `0102` Astro parity audit from source <sup>docs · p1</sup>
+- [x] `0103` Field-level incrementality <sup>feature · p1</sup>
 
 ## m1 — M1 — A static site generator people would use
 
-`··········` 0% · 0 of 63 done · due 2027-02-05
+`#·········` 2% · 1 of 63 done · due 2027-02-05
 
 The product. Competes with Zola, with types. The project is judged on this milestone and nothing after it is built unless M1 finds users.
 
@@ -92,10 +89,13 @@ The product. Competes with Zola, with types. The project is judged on this miles
 - [ ] `0130` Expression scanner truncates at a brace inside a string <sup>bug · p1</sup>
 - [ ] `0131` Deleted source files leave their entries behind <sup>bug · p1</sup>
 - [ ] `0132` Collection membership changes must invalidate readers <sup>feature · p1</sup>
-- [ ] `0133` Attribute context is lost inside blocks and after a literal gt <sup>bug · p0</sup>
 - [ ] `0134` Rescan p99 is still the maximum, and Html in attributes is undefined <sup>bug · p1</sup>
 - [ ] `0135` Slug derivation degrades to absolute paths <sup>bug · p1</sup>
 - [ ] `0136` Generated code does not compile: SinkExt is not imported <sup>bug · p1</sup>
+
+### done
+
+- [x] `0133` Attribute context is lost inside blocks and after a literal gt <sup>bug · p0</sup>
 
 ## m2 — M2 — The interactivity ladder
 
