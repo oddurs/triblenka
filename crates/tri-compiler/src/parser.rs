@@ -11,6 +11,7 @@ pub fn parse(source: &str) -> Result<Document, ParseError> {
         source,
         bytes: source.as_bytes(),
         pos: 0,
+        scan: Scan::Text,
     };
     let (frontmatter, frontmatter_span) = parser.frontmatter()?;
     let nodes = parser.nodes(None)?;
@@ -25,6 +26,20 @@ struct Parser<'a> {
     source: &'a str,
     bytes: &'a [u8],
     pos: usize,
+    /// Where the scanner is in the markup.
+    ///
+    /// A field rather than a local of `nodes()`, because block bodies recurse through `nodes()` and
+    /// a local resets to `Text` at every `{#if}` — which is how an interpolation inside a block
+    /// inside an attribute lost its escaping.
+    scan: Scan,
+}
+
+/// Where the scanner is: in text, in a tag, or inside a quoted attribute value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Scan {
+    Text,
+    Tag,
+    Attribute(u8),
 }
 
 impl<'a> Parser<'a> {
@@ -65,17 +80,10 @@ impl<'a> Parser<'a> {
     fn nodes(&mut self, inside: Option<&str>) -> Result<Vec<Node>, ParseError> {
         let mut nodes = Vec::new();
         let mut text_start = self.pos;
-        // Whether the scanner is between `<` and `>`, which is how an interpolation learns that it
-        // lands in an attribute value and must escape quotes too.
-        let mut in_tag = false;
 
         while self.pos < self.bytes.len() {
             if self.bytes[self.pos] != b'{' {
-                match self.bytes[self.pos] {
-                    b'<' => in_tag = true,
-                    b'>' => in_tag = false,
-                    _ => {}
-                }
+                self.advance_scan(self.bytes[self.pos]);
                 self.pos += 1;
                 continue;
             }
@@ -112,7 +120,7 @@ impl<'a> Parser<'a> {
             let node = if next == Some(b'#') {
                 self.block(brace)?
             } else {
-                self.interpolation(brace, in_tag)?
+                self.interpolation(brace)?
             };
             nodes.push(node);
             text_start = self.pos;
@@ -128,7 +136,22 @@ impl<'a> Parser<'a> {
         Ok(nodes)
     }
 
-    fn interpolation(&mut self, brace: usize, attribute: bool) -> Result<Node, ParseError> {
+    /// Update the scan state for one byte of markup.
+    ///
+    /// Quoting is tracked, so a literal `>` inside an attribute value does not end tag context and
+    /// a literal `<` in prose does not start one.
+    fn advance_scan(&mut self, byte: u8) {
+        self.scan = match (self.scan, byte) {
+            (Scan::Text, b'<') => Scan::Tag,
+            (Scan::Tag, b'>') => Scan::Text,
+            (Scan::Tag, q @ (b'"' | b'\'')) => Scan::Attribute(q),
+            (Scan::Attribute(q), b) if b == q => Scan::Tag,
+            (state, _) => state,
+        };
+    }
+
+    fn interpolation(&mut self, brace: usize) -> Result<Node, ParseError> {
+        let scan = self.scan;
         let (source, span) = self.take_braced(brace)?;
         let trimmed = source.trim();
         if trimmed.is_empty() {
@@ -137,10 +160,17 @@ impl<'a> Parser<'a> {
                 span,
             });
         }
+        // An unquoted attribute value ends at whitespace, so escaping quotes cannot make it safe.
+        if scan == Scan::Tag {
+            return Err(ParseError {
+                kind: ParseErrorKind::UnquotedAttribute,
+                span,
+            });
+        }
         Ok(Node::Expr {
             source: trimmed.to_owned(),
             span,
-            attribute,
+            attribute: matches!(scan, Scan::Attribute(_)),
         })
     }
 

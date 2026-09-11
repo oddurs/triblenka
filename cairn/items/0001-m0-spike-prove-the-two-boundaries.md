@@ -3,9 +3,9 @@ id: 1
 key: m0
 title: 'M0 — Spike: prove the two boundaries'
 type: milestone
-status: backlog
+status: done
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-11
 priority: p2
 due: 2026-09-30
 ---

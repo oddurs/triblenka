@@ -2,8 +2,9 @@
 id: 133
 title: Attribute context is lost inside blocks and after a literal gt
 type: bug
-status: backlog
+status: done
 milestone: m1
+assignee: Oddur Sigurdsson
 created: 2026-09-11
 updated: 2026-09-11
 priority: p0
@@ -31,3 +32,11 @@ Move the scan state onto the parser so it survives recursion, and track attribut
 - [ ] Interpolation inside a block inside an attribute keeps attribute escaping
 - [ ] A literal > or < inside an attribute value does not change context
 - [ ] Interpolation into an unquoted attribute is a parse error naming the attribute
+
+## 2026-09-11
+
+Fixed by moving the scan state onto the parser as a three-state machine (Text / Tag / Attribute(quote)) so it survives recursion into block bodies, and by tracking attribute quoting rather than inferring context from bare < and >.
+
+The unquoted case is rejected at parse time rather than escaped: an unquoted attribute value ends at whitespace, so no amount of character escaping makes interpolation into one safe. The error says to wrap the value in quotes.
+
+Five regression tests cover the three reported shapes plus a literal < in prose and single-quoted attributes.
